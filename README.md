@@ -537,6 +537,12 @@ Every response returns `{ success, data, meta?, error? }`. This gives frontend c
 4. **Refresh tokens stored in DB** — this allows server-side revocation (logout, deactivate user). The trade-off is one extra DB read per refresh call.
 5. **No email verification** — registration is immediate. In production you'd send a verification email before activating the account.
 
-<img width="1920" height="1080" alt="Screenshot 2026-04-02 172022" src="https://github.com/user-attachments/assets/331fc79b-4f5d-4226-9be8-10320958137b" />
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-02 172034" src="https://github.com/user-attachments/assets/fb45c142-06d8-4be6-bcb7-bc5efcd934c4" />
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-02 171306" src="https://github.com/user-attachments/assets/d676d66c-4849-42e0-a3e3-f76cfd23e29c" />
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-02 172022" src="https://github.com/user-attachments/assets/e8f9887b-89d8-4a77-95b9-7c74ad486cb4" />
+
 
 
