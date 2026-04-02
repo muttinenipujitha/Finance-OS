@@ -545,4 +545,5 @@ Every response returns `{ success, data, meta?, error? }`. This gives frontend c
 <img width="1920" height="1080" alt="Screenshot 2026-04-02 172022" src="https://github.com/user-attachments/assets/e8f9887b-89d8-4a77-95b9-7c74ad486cb4" />
 
 
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/fc151621-e51c-4e3b-a27a-7ab041c0f64b" />
 
