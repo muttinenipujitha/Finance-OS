@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FinanceOS</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:       #0a0c10;
+  --surface:  #111318;
+  --card:     #161a22;
+  --border:   #1f2430;
+  --border2:  #2a3040;
+  --accent:   #4ade80;
+  --accent2:  #22d3ee;
+  --red:      #f87171;
+  --yellow:   #fbbf24;
+  --text:     #e2e8f0;
+  --muted:    #64748b;
+  --muted2:   #94a3b8;
+  --font-h:   'Syne', sans-serif;
+  --font-b:   'DM Sans', sans-serif;
+  --font-m:   'DM Mono', monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font-b);}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-track{background:var(--bg);} ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+
+/* ── AUTH SCREEN ── */
+#auth-screen {
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, #0d2a18 0%, var(--bg) 60%);
+}
+.auth-box {
+  width:420px; background:var(--surface); border:1px solid var(--border);
+  border-radius:16px; padding:40px; position:relative; overflow:hidden;
+}
+.auth-box::before {
+  content:''; position:absolute; top:-1px; left:20%; right:20%; height:2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+.auth-logo { font-family:var(--font-h); font-size:28px; font-weight:800; letter-spacing:-1px; margin-bottom:4px;}
+.auth-logo span { color:var(--accent); }
+.auth-sub { color:var(--muted); font-size:13px; margin-bottom:32px; font-family:var(--font-m); }
+.tab-row { display:flex; gap:4px; margin-bottom:28px; background:var(--bg); border-radius:8px; padding:4px; }
+.tab-btn {
+  flex:1; padding:8px; border:none; background:transparent; color:var(--muted);
+  font-family:var(--font-b); font-size:13px; font-weight:500; border-radius:6px;
+  cursor:pointer; transition:all .2s;
+}
+.tab-btn.active { background:var(--card); color:var(--text); }
+
+label { display:block; font-size:11px; font-family:var(--font-m); color:var(--muted2); margin-bottom:6px; letter-spacing:.05em; text-transform:uppercase; }
+input[type=text],input[type=email],input[type=password] {
+  width:100%; background:var(--bg); border:1px solid var(--border); border-radius:8px;
+  padding:10px 14px; color:var(--text); font-family:var(--font-b); font-size:14px;
+  outline:none; transition:border-color .2s; margin-bottom:16px;
+}
+input:focus { border-color:var(--accent); }
+.btn {
+  width:100%; padding:12px; border:none; border-radius:8px; font-family:var(--font-h);
+  font-size:14px; font-weight:700; letter-spacing:.03em; cursor:pointer; transition:all .15s;
+}
+.btn-primary { background:var(--accent); color:#0a0c10; }
+.btn-primary:hover { filter:brightness(1.1); transform:translateY(-1px); }
+.btn-danger  { background:var(--red); color:#0a0c10; }
+.btn-outline {
+  background:transparent; color:var(--text); border:1px solid var(--border2); width:auto; padding:8px 16px;
+}
+.btn-outline:hover { border-color:var(--accent); color:var(--accent); }
+.btn-sm { padding:6px 14px; font-size:12px; }
+.auth-err { color:var(--red); font-size:12px; font-family:var(--font-m); margin-top:12px; display:none; }
+
+/* ── APP LAYOUT ── */
+#app-screen { display:none; min-height:100vh; }
+.sidebar {
+  position:fixed; top:0; left:0; bottom:0; width:220px;
+  background:var(--surface); border-right:1px solid var(--border);
+  display:flex; flex-direction:column; z-index:100;
+}
+.sidebar-logo { padding:24px 20px 20px; font-family:var(--font-h); font-size:20px; font-weight:800; letter-spacing:-0.5px; border-bottom:1px solid var(--border); }
+.sidebar-logo span { color:var(--accent); }
+.sidebar-user { padding:16px 20px; border-bottom:1px solid var(--border); }
+.sidebar-user-name { font-size:13px; font-weight:500; }
+.sidebar-user-role {
+  font-family:var(--font-m); font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+  padding:2px 8px; border-radius:4px; display:inline-block; margin-top:4px;
+}
+.role-ADMIN   { background:#1a2e1a; color:var(--accent); }
+.role-ANALYST { background:#1a2030; color:var(--accent2); }
+.role-VIEWER  { background:#2a2010; color:var(--yellow); }
+
+.nav { padding:12px 0; flex:1; overflow-y:auto; }
+.nav-item {
+  display:flex; align-items:center; gap:10px; padding:10px 20px;
+  font-size:13px; color:var(--muted2); cursor:pointer; transition:all .15s;
+  border-left:2px solid transparent; font-weight:500;
+}
+.nav-item:hover { color:var(--text); background:var(--card); }
+.nav-item.active { color:var(--accent); border-left-color:var(--accent); background:rgba(74,222,128,.06); }
+.nav-icon { width:16px; text-align:center; font-size:14px; }
+.sidebar-footer { padding:16px 20px; border-top:1px solid var(--border); }
+
+.main { margin-left:220px; padding:28px 32px; min-height:100vh; }
+.page { display:none; }
+.page.active { display:block; }
+.page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+.page-title { font-family:var(--font-h); font-size:22px; font-weight:800; letter-spacing:-.5px; }
+.page-sub { color:var(--muted); font-size:13px; margin-top:2px; }
+
+/* ── STAT CARDS ── */
+.stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+.stat-card {
+  background:var(--card); border:1px solid var(--border); border-radius:12px;
+  padding:20px 22px; position:relative; overflow:hidden;
+}
+.stat-card::after {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+}
+.stat-card.income::after  { background:linear-gradient(90deg,var(--accent),transparent); }
+.stat-card.expense::after { background:linear-gradient(90deg,var(--red),transparent); }
+.stat-card.net::after     { background:linear-gradient(90deg,var(--accent2),transparent); }
+.stat-label { font-family:var(--font-m); font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin-bottom:10px; }
+.stat-value { font-family:var(--font-h); font-size:26px; font-weight:800; letter-spacing:-1px; }
+.stat-value.pos { color:var(--accent); }
+.stat-value.neg { color:var(--red); }
+.stat-value.neu { color:var(--accent2); }
+.stat-count { font-size:11px; color:var(--muted); margin-top:4px; font-family:var(--font-m); }
+
+/* ── TABLE ── */
+.card { background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.card-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.card-title { font-family:var(--font-h); font-size:14px; font-weight:700; }
+table { width:100%; border-collapse:collapse; }
+th { padding:10px 16px; font-family:var(--font-m); font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); text-align:left; background:var(--surface); border-bottom:1px solid var(--border); }
+td { padding:12px 16px; font-size:13px; border-bottom:1px solid var(--border); vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:rgba(255,255,255,.02); }
+
+.badge {
+  font-family:var(--font-m); font-size:10px; letter-spacing:.05em; text-transform:uppercase;
+  padding:3px 8px; border-radius:4px; display:inline-block;
+}
+.badge-income  { background:#0d2a18; color:var(--accent); }
+.badge-expense { background:#2a1010; color:var(--red); }
+.badge-ADMIN   { background:#1a2e1a; color:var(--accent); }
+.badge-ANALYST { background:#1a2030; color:var(--accent2); }
+.badge-VIEWER  { background:#2a2010; color:var(--yellow); }
+.badge-ACTIVE  { background:#0d2a18; color:var(--accent); }
+.badge-INACTIVE{ background:#2a2010; color:var(--muted); }
+
+.amount-pos { color:var(--accent); font-family:var(--font-m); font-weight:500; }
+.amount-neg { color:var(--red);    font-family:var(--font-m); font-weight:500; }
+
+/* ── FILTERS ── */
+.filters { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
+.filter-input {
+  background:var(--card); border:1px solid var(--border); border-radius:8px;
+  padding:8px 12px; color:var(--text); font-family:var(--font-b); font-size:13px;
+  outline:none; min-width:140px;
+}
+.filter-input:focus { border-color:var(--accent2); }
+select.filter-input option { background:var(--card); }
+
+/* ── PAGINATION ── */
+.pagination { display:flex; align-items:center; gap:8px; padding:14px 16px; justify-content:flex-end; border-top:1px solid var(--border); }
+.page-btn {
+  padding:5px 12px; border:1px solid var(--border2); border-radius:6px; background:transparent;
+  color:var(--muted2); font-family:var(--font-m); font-size:12px; cursor:pointer; transition:all .15s;
+}
+.page-btn:hover:not(:disabled) { border-color:var(--accent); color:var(--accent); }
+.page-btn:disabled { opacity:.35; cursor:default; }
+.page-info { font-family:var(--font-m); font-size:12px; color:var(--muted); }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.7); display:flex;
+  align-items:center; justify-content:center; z-index:999; backdrop-filter:blur(4px);
+  opacity:0; pointer-events:none; transition:opacity .2s;
+}
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal {
+  background:var(--surface); border:1px solid var(--border2); border-radius:14px;
+  padding:28px; width:460px; max-width:95vw; position:relative;
+  transform:translateY(10px); transition:transform .2s;
+}
+.modal-overlay.open .modal { transform:translateY(0); }
+.modal-title { font-family:var(--font-h); font-size:18px; font-weight:800; margin-bottom:20px; }
+.modal-close { position:absolute; top:16px; right:16px; background:none; border:none; color:var(--muted); font-size:20px; cursor:pointer; }
+.modal-close:hover { color:var(--text); }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.form-group { margin-bottom:14px; }
+.form-group label { margin-bottom:6px; }
+.form-group input, .form-group select, .form-group textarea {
+  width:100%; background:var(--bg); border:1px solid var(--border); border-radius:8px;
+  padding:9px 12px; color:var(--text); font-family:var(--font-b); font-size:13px; outline:none; transition:border-color .2s;
+}
+.form-group select option { background:var(--bg); }
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus { border-color:var(--accent); }
+.form-group textarea { resize:vertical; min-height:70px; }
+.modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:4px; }
+
+/* ── TOAST ── */
+#toast {
+  position:fixed; bottom:24px; right:24px; z-index:9999;
+  background:var(--card); border:1px solid var(--border2); border-radius:10px;
+  padding:12px 18px; font-size:13px; font-family:var(--font-m);
+  display:flex; align-items:center; gap:8px;
+  transform:translateY(20px); opacity:0; pointer-events:none; transition:all .25s;
+  max-width:320px;
+}
+#toast.show { transform:translateY(0); opacity:1; }
+#toast.ok  { border-color:var(--accent); }
+#toast.err { border-color:var(--red); }
+#toast.ok  .toast-dot { background:var(--accent); }
+#toast.err .toast-dot { background:var(--red); }
+.toast-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+/* ── CHART placeholder ── */
+.chart-area { padding:20px; height:200px; display:flex; align-items:center; justify-content:center; }
+.chart-bars { display:flex; align-items:flex-end; gap:8px; height:160px; width:100%; }
+.chart-bar-group { flex:1; display:flex; gap:3px; align-items:flex-end; }
+.bar { flex:1; border-radius:3px 3px 0 0; transition:height .5s ease; min-height:2px; }
+.bar-income  { background:var(--accent); opacity:.85; }
+.bar-expense { background:var(--red); opacity:.85; }
+.chart-legend { display:flex; gap:16px; padding:0 20px 16px; }
+.legend-item { display:flex; align-items:center; gap:6px; font-family:var(--font-m); font-size:11px; color:var(--muted2); }
+.legend-dot { width:8px; height:8px; border-radius:2px; }
+
+/* ── EMPTY STATE ── */
+.empty { padding:48px; text-align:center; color:var(--muted); font-size:13px; font-family:var(--font-m); }
+.empty-icon { font-size:32px; margin-bottom:10px; opacity:.4; }
+
+/* ── LOADING ── */
+.spinner {
+  width:18px; height:18px; border:2px solid var(--border2); border-top-color:var(--accent);
+  border-radius:50%; animation:spin .6s linear infinite; display:inline-block;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+.loading-row td { text-align:center; padding:32px; }
+
+/* ── CATEGORY BREAKDOWN ── */
+.cat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; padding:16px; }
+.cat-item { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px 14px; }
+.cat-name { font-size:12px; font-weight:500; margin-bottom:6px; }
+.cat-bar-wrap { height:4px; background:var(--border2); border-radius:2px; margin-bottom:8px; overflow:hidden; }
+.cat-bar-fill { height:100%; border-radius:2px; background:var(--accent); transition:width .6s; }
+.cat-nums { display:flex; justify-content:space-between; font-family:var(--font-m); font-size:10px; }
+
+/* ── ACTION BUTTONS ── */
+.action-btn { background:none; border:1px solid var(--border2); border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer; color:var(--muted2); font-family:var(--font-m); transition:all .15s; }
+.action-btn:hover { border-color:var(--accent); color:var(--accent); }
+.action-btn.del:hover { border-color:var(--red); color:var(--red); }
+</style>
+</head>
+<body>
+
+<!-- ─── AUTH ─── -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">Finance<span>OS</span></div>
+    <div class="auth-sub">// enterprise finance dashboard</div>
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('login')">Sign In</button>
+      <button class="tab-btn" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <!-- Login -->
+    <div id="tab-login">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="you@company.com"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••"/>
+      </div>
+      <button class="btn btn-primary" onclick="doLogin()">Sign In →</button>
+      <div class="auth-err" id="login-err"></div>
+    </div>
+
+    <!-- Register -->
+    <div id="tab-register" style="display:none">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="reg-name" placeholder="Jane Smith"/>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="reg-email" placeholder="you@company.com"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="reg-password" placeholder="Min 8 chars, 1 upper, 1 number"/>
+      </div>
+      <button class="btn btn-primary" onclick="doRegister()">Create Account →</button>
+      <div class="auth-err" id="reg-err"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── APP ─── -->
+<div id="app-screen">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">Finance<span>OS</span></div>
+    <div class="sidebar-user">
+      <div class="sidebar-user-name" id="sb-name">—</div>
+      <div class="sidebar-user-role role-VIEWER" id="sb-role">VIEWER</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active" onclick="showPage('dashboard')">
+        <span class="nav-icon">◈</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('transactions')">
+        <span class="nav-icon">⇌</span> Transactions
+      </div>
+      <div class="nav-item" id="nav-users" onclick="showPage('users')" style="display:none">
+        <span class="nav-icon">◉</span> Users
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn btn-outline btn-sm" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-sub">Financial overview</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input class="filter-input" type="date" id="dash-from" style="min-width:130px"/>
+          <span style="color:var(--muted);font-size:12px;">→</span>
+          <input class="filter-input" type="date" id="dash-to"   style="min-width:130px"/>
+          <button class="btn btn-outline btn-sm" onclick="loadDashboard()">Apply</button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card income">
+          <div class="stat-label">Total Income</div>
+          <div class="stat-value pos" id="stat-income">—</div>
+          <div class="stat-count" id="stat-income-count"></div>
+        </div>
+        <div class="stat-card expense">
+          <div class="stat-label">Total Expenses</div>
+          <div class="stat-value neg" id="stat-expense">—</div>
+          <div class="stat-count" id="stat-expense-count"></div>
+        </div>
+        <div class="stat-card net">
+          <div class="stat-label">Net Balance</div>
+          <div class="stat-value neu" id="stat-net">—</div>
+          <div class="stat-count" id="stat-total-count"></div>
+        </div>
+      </div>
+
+      <!-- Trends chart -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-header">
+          <div class="card-title">Income vs Expenses Trend</div>
+          <div style="display:flex;gap:8px;">
+            <select class="filter-input" id="trend-period" style="min-width:100px" onchange="loadTrends()">
+              <option value="monthly">Monthly</option>
+              <option value="weekly">Weekly</option>
+            </select>
+            <select class="filter-input" id="trend-months" style="min-width:90px" onchange="loadTrends()">
+              <option value="6">6 months</option>
+              <option value="12" selected>12 months</option>
+              <option value="24">24 months</option>
+            </select>
+          </div>
+        </div>
+        <div class="chart-area" id="chart-area">
+          <div class="spinner"></div>
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Income</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Expense</div>
+        </div>
+      </div>
+
+      <!-- Categories + Recent -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="card">
+          <div class="card-header"><div class="card-title">By Category</div></div>
+          <div class="cat-grid" id="cat-grid"><div class="empty"><div class="empty-icon">◎</div>Loading...</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Recent Activity</div></div>
+          <table>
+            <thead><tr><th>Date</th><th>Category</th><th>Amount</th></tr></thead>
+            <tbody id="recent-tbody"><tr class="loading-row"><td colspan="3"><div class="spinner"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TRANSACTIONS ── -->
+    <div class="page" id="page-transactions">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Transactions</div>
+          <div class="page-sub">All financial records</div>
+        </div>
+        <button class="btn btn-primary" id="btn-add-tx" style="width:auto;padding:10px 20px;display:none" onclick="openTxModal()">+ Add Transaction</button>
+      </div>
+      <div class="filters">
+        <input class="filter-input" id="tx-search" placeholder="Search notes/category…" oninput="debounceTx()"/>
+        <select class="filter-input" id="tx-type" onchange="loadTransactions()">
+          <option value="">All Types</option>
+          <option value="INCOME">Income</option>
+          <option value="EXPENSE">Expense</option>
+        </select>
+        <input class="filter-input" type="date" id="tx-from" onchange="loadTransactions()"/>
+        <input class="filter-input" type="date" id="tx-to"   onchange="loadTransactions()"/>
+        <select class="filter-input" id="tx-sort" onchange="loadTransactions()">
+          <option value="date">Sort: Date</option>
+          <option value="amount">Sort: Amount</option>
+          <option value="createdAt">Sort: Created</option>
+        </select>
+        <select class="filter-input" id="tx-order" onchange="loadTransactions()">
+          <option value="desc">Desc</option>
+          <option value="asc">Asc</option>
+        </select>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Amount</th><th>Notes</th><th id="tx-actions-th" style="display:none">Actions</th></tr></thead>
+          <tbody id="tx-tbody"><tr class="loading-row"><td colspan="6"><div class="spinner"></div></td></tr></tbody>
+        </table>
+        <div class="pagination" id="tx-pagination"></div>
+      </div>
+    </div>
+
+    <!-- ── USERS ── -->
+    <div class="page" id="page-users">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Users</div>
+          <div class="page-sub">Admin: manage access</div>
+        </div>
+      </div>
+      <div class="filters">
+        <input class="filter-input" id="usr-search" placeholder="Search users…" oninput="debounceUsr()"/>
+        <select class="filter-input" id="usr-role" onchange="loadUsers()">
+          <option value="">All Roles</option>
+          <option value="VIEWER">Viewer</option>
+          <option value="ANALYST">Analyst</option>
+          <option value="ADMIN">Admin</option>
+        </select>
+        <select class="filter-input" id="usr-status" onchange="loadUsers()">
+          <option value="">All Status</option>
+          <option value="ACTIVE">Active</option>
+          <option value="INACTIVE">Inactive</option>
+        </select>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="usr-tbody"><tr class="loading-row"><td colspan="6"><div class="spinner"></div></td></tr></tbody>
+        </table>
+        <div class="pagination" id="usr-pagination"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ─── TRANSACTION MODAL ─── -->
+<div class="modal-overlay" id="tx-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeTxModal()">✕</button>
+    <div class="modal-title" id="tx-modal-title">Add Transaction</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Amount</label>
+        <input type="number" id="tx-amount" step="0.01" min="0.01" placeholder="0.00"/>
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <select id="tx-type-input">
+          <option value="INCOME">Income</option>
+          <option value="EXPENSE">Expense</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Category</label>
+        <input type="text" id="tx-category" placeholder="e.g. Salary, Rent"/>
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="tx-date"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Notes (optional)</label>
+      <textarea id="tx-notes" placeholder="Additional details…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="closeTxModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" style="width:auto;padding:8px 20px" onclick="submitTx()">Save Transaction</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── ROLE MODAL ─── -->
+<div class="modal-overlay" id="role-modal">
+  <div class="modal" style="width:340px">
+    <button class="modal-close" onclick="closeRoleModal()">✕</button>
+    <div class="modal-title">Change Role</div>
+    <div class="form-group">
+      <label>New Role</label>
+      <select id="role-select">
+        <option value="VIEWER">Viewer</option>
+        <option value="ANALYST">Analyst</option>
+        <option value="ADMIN">Admin</option>
+      </select>
+    </div>
+    <input type="hidden" id="role-user-id"/>
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="closeRoleModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" style="width:auto;padding:8px 20px" onclick="submitRole()">Update Role</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── TOAST ─── -->
+<div id="toast"><div class="toast-dot"></div><span id="toast-msg"></span></div>
+
+<script>
+// ─── CONFIG ────────────────────────────────────────────
+const API = 'http://localhost:3000/api/v1';
+let accessToken = '', refreshTokenVal = '', currentUser = null, txPage = 1, usrPage = 1, editTxId = null;
+
+// ─── API HELPERS ────────────────────────────────────────
+async function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}), ...(opts.headers||{}) };
+  const res = await fetch(`${API}${path}`, { ...opts, headers });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    if (res.status === 401 && refreshTokenVal) { await tryRefresh(); return api(path, opts); }
+    throw new Error(data?.error?.message || `HTTP ${res.status}`);
+  }
+  return data;
+}
+
+async function tryRefresh() {
+  try {
+    const r = await fetch(`${API}/auth/refresh`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ refreshToken: refreshTokenVal }) });
+    const d = await r.json();
+    if (r.ok) { accessToken = d.data.accessToken; refreshTokenVal = d.data.refreshToken; }
+    else { doLogout(); }
+  } catch { doLogout(); }
+}
+
+// ─── TOAST ──────────────────────────────────────────────
+function toast(msg, ok = true) {
+  const el = document.getElementById('toast');
+  el.querySelector('#toast-msg').textContent = msg;
+  el.className = `show ${ok ? 'ok' : 'err'}`;
+  setTimeout(() => el.className = '', 3000);
+}
+
+// ─── AUTH TABS ──────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('tab-login').style.display    = tab==='login'    ? '' : 'none';
+  document.getElementById('tab-register').style.display = tab==='register' ? '' : 'none';
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (i===0) === (tab==='login')));
+}
+
+// ─── LOGIN ──────────────────────────────────────────────
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-err');
+  errEl.style.display = 'none';
+  try {
+    const d = await api('/auth/login', { method:'POST', body: JSON.stringify({ email, password }) });
+    accessToken = d.data.accessToken; refreshTokenVal = d.data.refreshToken;
+    await loadMe();
+    showApp();
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+}
+
+// ─── REGISTER ───────────────────────────────────────────
+async function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const errEl = document.getElementById('reg-err');
+  errEl.style.display = 'none';
+  try {
+    await api('/auth/register', { method:'POST', body: JSON.stringify({ name, email, password }) });
+    toast('Account created! Please sign in.');
+    switchTab('login');
+    document.getElementById('login-email').value = email;
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+}
+
+// ─── ME ─────────────────────────────────────────────────
+async function loadMe() {
+  const d = await api('/auth/me');
+  currentUser = d.data;
+  document.getElementById('sb-name').textContent = currentUser.name;
+  const roleEl = document.getElementById('sb-role');
+  roleEl.textContent = currentUser.role;
+  roleEl.className = `sidebar-user-role role-${currentUser.role}`;
+  if (currentUser.role === 'ADMIN') {
+    document.getElementById('nav-users').style.display = '';
+    document.getElementById('btn-add-tx').style.display = '';
+    document.getElementById('tx-actions-th').style.display = '';
+  }
+}
+
+// ─── LOGOUT ─────────────────────────────────────────────
+async function doLogout() {
+  if (refreshTokenVal) { try { await api('/auth/logout', { method:'POST', body: JSON.stringify({ refreshToken: refreshTokenVal }) }); } catch {} }
+  accessToken = ''; refreshTokenVal = ''; currentUser = null;
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display = 'none';
+}
+
+// ─── SHOW APP ───────────────────────────────────────────
+function showApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display  = 'block';
+  showPage('dashboard');
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => { if(n.textContent.toLowerCase().includes(name.slice(0,4))) n.classList.add('active'); });
+  if (name === 'dashboard')    loadDashboard();
+  if (name === 'transactions') loadTransactions();
+  if (name === 'users')        loadUsers();
+}
+
+// ─── DASHBOARD ──────────────────────────────────────────
+async function loadDashboard() {
+  const from = document.getElementById('dash-from').value;
+  const to   = document.getElementById('dash-to').value;
+  let q = '';
+  if (from) q += `dateFrom=${from}&`;
+  if (to)   q += `dateTo=${to}&`;
+
+  const isAnalystOrAdmin = currentUser && (currentUser.role === 'ANALYST' || currentUser.role === 'ADMIN');
+
+  // Use allSettled so a 403 on categories/trends never blocks stats or recent
+  const [sumR, catR, recR] = await Promise.allSettled([
+    api(`/dashboard/summary?${q}`),
+    isAnalystOrAdmin ? api('/dashboard/categories') : Promise.reject({ _skip: true }),
+    api('/dashboard/recent'),
+  ]);
+
+  // ── Stats (all roles) ──
+  if (sumR.status === 'fulfilled') {
+    const s = sumR.value.data;
+    document.getElementById('stat-income').textContent  = fmt(s.totalIncome);
+    document.getElementById('stat-expense').textContent = fmt(s.totalExpenses);
+    const net = s.netBalance;
+    const netEl = document.getElementById('stat-net');
+    netEl.textContent = fmt(net);
+    netEl.className = `stat-value ${net >= 0 ? 'pos' : 'neg'}`;
+    document.getElementById('stat-income-count').textContent  = `${s.incomeCount} transactions`;
+    document.getElementById('stat-expense-count').textContent = `${s.expenseCount} transactions`;
+    document.getElementById('stat-total-count').textContent   = `${s.totalTransactions} total`;
+  } else {
+    ['stat-income','stat-expense','stat-net'].forEach(id => document.getElementById(id).textContent = 'Error');
+    toast('Could not load summary', false);
+  }
+
+  // ── Categories (ANALYST / ADMIN only) ──
+  if (catR.status === 'fulfilled') {
+    const cats = catR.value.data;
+    const maxTotal = Math.max(...cats.map(c => c.income + c.expense), 1);
+    document.getElementById('cat-grid').innerHTML = cats.slice(0,8).map(c => `
+      <div class="cat-item">
+        <div class="cat-name">${c.category}</div>
+        <div class="cat-bar-wrap"><div class="cat-bar-fill" style="width:${((c.income+c.expense)/maxTotal*100).toFixed(1)}%"></div></div>
+        <div class="cat-nums">
+          <span style="color:var(--accent)">${fmt(c.income)}</span>
+          <span style="color:var(--red)">${fmt(c.expense)}</span>
+        </div>
+      </div>`).join('') || '<div class="empty"><div class="empty-icon">◎</div>No data yet</div>';
+  } else {
+    document.getElementById('cat-grid').innerHTML =
+      `<div class="empty" style="grid-column:1/-1">
+         <div class="empty-icon" style="font-size:20px">🔒</div>
+         <div>Category breakdown requires <strong>ANALYST</strong> or <strong>ADMIN</strong> role</div>
+       </div>`;
+  }
+
+  // ── Recent activity (all roles) ──
+  if (recR.status === 'fulfilled') {
+    const rows = recR.value.data;
+    document.getElementById('recent-tbody').innerHTML = rows.length
+      ? rows.slice(0,8).map(t => `
+          <tr>
+            <td style="font-family:var(--font-m);font-size:11px;color:var(--muted)">${fmtDate(t.date)}</td>
+            <td><span class="badge badge-${t.type.toLowerCase()}">${t.category}</span></td>
+            <td class="${t.type==='INCOME'?'amount-pos':'amount-neg'}">${t.type==='INCOME'?'+':'-'}${fmt(t.amount)}</td>
+          </tr>`).join('')
+      : '<tr><td colspan="3" class="empty">No transactions yet</td></tr>';
+  } else {
+    document.getElementById('recent-tbody').innerHTML = '<tr><td colspan="3" class="empty">Could not load recent activity</td></tr>';
+  }
+
+  // ── Trends (ANALYST / ADMIN only) ──
+  loadTrends();
+}
+
+async function loadTrends() {
+  const chartEl = document.getElementById('chart-area');
+  const isAnalystOrAdmin = currentUser && (currentUser.role === 'ANALYST' || currentUser.role === 'ADMIN');
+
+  if (!isAnalystOrAdmin) {
+    chartEl.innerHTML = `
+      <div style="text-align:center;color:var(--muted);font-family:var(--font-m);font-size:12px;line-height:1.8">
+        <div style="font-size:24px;margin-bottom:8px;opacity:.4">🔒</div>
+        Trend analytics require <strong style="color:var(--muted2)">ANALYST</strong> or <strong style="color:var(--muted2)">ADMIN</strong> role
+      </div>`;
+    return;
+  }
+
+  const period = document.getElementById('trend-period').value;
+  const months = document.getElementById('trend-months').value;
+  chartEl.innerHTML = '<div class="spinner"></div>';
+  try {
+    const d = await api(`/dashboard/trends?period=${period}&months=${months}`);
+    const data = d.data;
+    if (!data.length) { chartEl.innerHTML = '<div class="empty" style="color:var(--muted);font-family:var(--font-m)">No trend data in this period</div>'; return; }
+    const maxVal = Math.max(...data.flatMap(r => [r.income, r.expense]), 1);
+    chartEl.innerHTML = `<div class="chart-bars">${data.map(r => `
+      <div class="chart-bar-group" title="${r.period}">
+        <div class="bar bar-income"  style="height:${(r.income /maxVal*100).toFixed(1)}%"  title="Income: ${fmt(r.income)}"></div>
+        <div class="bar bar-expense" style="height:${(r.expense/maxVal*100).toFixed(1)}%" title="Expense: ${fmt(r.expense)}"></div>
+      </div>`).join('')}</div>`;
+  } catch(e) {
+    chartEl.innerHTML = '<div class="empty" style="color:var(--muted);font-size:12px;font-family:var(--font-m)">Could not load trends</div>';
+  }
+}
+
+// ─── TRANSACTIONS ────────────────────────────────────────
+let txDebounce;
+function debounceTx() { clearTimeout(txDebounce); txDebounce = setTimeout(loadTransactions, 350); }
+
+async function loadTransactions() {
+  const search = document.getElementById('tx-search').value;
+  const type   = document.getElementById('tx-type').value;
+  const from   = document.getElementById('tx-from').value;
+  const to     = document.getElementById('tx-to').value;
+  const sort   = document.getElementById('tx-sort').value;
+  const order  = document.getElementById('tx-order').value;
+  const limit  = 15;
+  let q = `page=${txPage}&limit=${limit}&sortBy=${sort}&sortOrder=${order}`;
+  if (search) q += `&search=${encodeURIComponent(search)}`;
+  if (type)   q += `&type=${type}`;
+  if (from)   q += `&dateFrom=${from}`;
+  if (to)     q += `&dateTo=${to}`;
+  const tbody = document.getElementById('tx-tbody');
+  tbody.innerHTML = '<tr class="loading-row"><td colspan="6"><div class="spinner"></div></td></tr>';
+  try {
+    const d = await api(`/transactions?${q}`);
+    const txs = d.data, meta = d.meta;
+    const isAdmin = currentUser?.role === 'ADMIN';
+    tbody.innerHTML = txs.length ? txs.map(t => `
+      <tr>
+        <td style="font-family:var(--font-m);font-size:11px;color:var(--muted)">${fmtDate(t.date)}</td>
+        <td><span class="badge badge-${t.type.toLowerCase()}">${t.type}</span></td>
+        <td style="font-size:12px">${t.category}</td>
+        <td class="${t.type==='INCOME'?'amount-pos':'amount-neg'}">${t.type==='INCOME'?'+':'-'}${fmt(t.amount)}</td>
+        <td style="font-size:12px;color:var(--muted2);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.notes||'—'}</td>
+        ${isAdmin ? `<td style="display:''">
+          <button class="action-btn" onclick="editTx('${t.id}',${JSON.stringify(t).replace(/"/g,'&quot;')})">Edit</button>
+          <button class="action-btn del" onclick="deleteTx('${t.id}')">Del</button>
+        </td>` : '<td></td>'}
+      </tr>`).join('')
+    : '<tr><td colspan="6" class="empty"><div class="empty-icon">⇌</div>No transactions found</td></tr>';
+    renderPagination('tx', meta, txPage, p => { txPage = p; loadTransactions(); });
+  } catch(e) { toast(e.message, false); tbody.innerHTML = '<tr><td colspan="6" class="empty">Error loading</td></tr>'; }
+}
+
+function openTxModal(data) {
+  editTxId = null;
+  document.getElementById('tx-modal-title').textContent = 'Add Transaction';
+  document.getElementById('tx-amount').value = '';
+  document.getElementById('tx-type-input').value = 'INCOME';
+  document.getElementById('tx-category').value = '';
+  document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('tx-notes').value = '';
+  document.getElementById('tx-modal').classList.add('open');
+}
+function editTx(id, t) {
+  editTxId = id;
+  document.getElementById('tx-modal-title').textContent = 'Edit Transaction';
+  document.getElementById('tx-amount').value = t.amount;
+  document.getElementById('tx-type-input').value = t.type;
+  document.getElementById('tx-category').value = t.category;
+  document.getElementById('tx-date').value = t.date?.split('T')[0] || '';
+  document.getElementById('tx-notes').value = t.notes || '';
+  document.getElementById('tx-modal').classList.add('open');
+}
+function closeTxModal() { document.getElementById('tx-modal').classList.remove('open'); }
+
+async function submitTx() {
+  const body = {
+    amount:   parseFloat(document.getElementById('tx-amount').value),
+    type:     document.getElementById('tx-type-input').value,
+    category: document.getElementById('tx-category').value.trim(),
+    date:     document.getElementById('tx-date').value,
+    notes:    document.getElementById('tx-notes').value.trim() || undefined,
+  };
+  try {
+    if (editTxId) { await api(`/transactions/${editTxId}`, { method:'PATCH', body: JSON.stringify(body) }); toast('Transaction updated'); }
+    else          { await api('/transactions', { method:'POST', body: JSON.stringify(body) }); toast('Transaction created'); }
+    closeTxModal(); loadTransactions();
+  } catch(e) { toast(e.message, false); }
+}
+
+async function deleteTx(id) {
+  if (!confirm('Delete this transaction?')) return;
+  try { await api(`/transactions/${id}`, { method:'DELETE' }); toast('Deleted'); loadTransactions(); }
+  catch(e) { toast(e.message, false); }
+}
+
+// ─── USERS ──────────────────────────────────────────────
+let usrDebounce;
+function debounceUsr() { clearTimeout(usrDebounce); usrDebounce = setTimeout(loadUsers, 350); }
+
+async function loadUsers() {
+  const search = document.getElementById('usr-search').value;
+  const role   = document.getElementById('usr-role').value;
+  const status = document.getElementById('usr-status').value;
+  let q = `page=${usrPage}&limit=15`;
+  if (search) q += `&search=${encodeURIComponent(search)}`;
+  if (role)   q += `&role=${role}`;
+  if (status) q += `&status=${status}`;
+  const tbody = document.getElementById('usr-tbody');
+  tbody.innerHTML = '<tr class="loading-row"><td colspan="6"><div class="spinner"></div></td></tr>';
+  try {
+    const d = await api(`/users?${q}`);
+    tbody.innerHTML = d.data.length ? d.data.map(u => `
+      <tr>
+        <td style="font-weight:500">${u.name}</td>
+        <td style="font-family:var(--font-m);font-size:11px;color:var(--muted2)">${u.email}</td>
+        <td><span class="badge badge-${u.role}">${u.role}</span></td>
+        <td><span class="badge badge-${u.status}">${u.status}</span></td>
+        <td style="font-family:var(--font-m);font-size:11px;color:var(--muted)">${fmtDate(u.createdAt)}</td>
+        <td>
+          <button class="action-btn" onclick="openRoleModal('${u.id}','${u.role}')">Role</button>
+          <button class="action-btn" onclick="toggleStatus('${u.id}','${u.status}')">${u.status==='ACTIVE'?'Deactivate':'Activate'}</button>
+          <button class="action-btn del" onclick="deleteUser('${u.id}')">Del</button>
+        </td>
+      </tr>`).join('')
+    : '<tr><td colspan="6" class="empty"><div class="empty-icon">◉</div>No users found</td></tr>';
+    renderPagination('usr', d.meta, usrPage, p => { usrPage = p; loadUsers(); });
+  } catch(e) { toast(e.message, false); tbody.innerHTML = '<tr><td colspan="6" class="empty">Error loading</td></tr>'; }
+}
+
+function openRoleModal(id, currentRole) {
+  document.getElementById('role-user-id').value = id;
+  document.getElementById('role-select').value = currentRole;
+  document.getElementById('role-modal').classList.add('open');
+}
+function closeRoleModal() { document.getElementById('role-modal').classList.remove('open'); }
+
+async function submitRole() {
+  const id   = document.getElementById('role-user-id').value;
+  const role = document.getElementById('role-select').value;
+  try { await api(`/users/${id}/role`, { method:'PATCH', body: JSON.stringify({ role }) }); toast('Role updated'); closeRoleModal(); loadUsers(); }
+  catch(e) { toast(e.message, false); }
+}
+
+async function toggleStatus(id, current) {
+  const status = current === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+  try { await api(`/users/${id}/status`, { method:'PATCH', body: JSON.stringify({ status }) }); toast(`User ${status.toLowerCase()}`); loadUsers(); }
+  catch(e) { toast(e.message, false); }
+}
+
+async function deleteUser(id) {
+  if (!confirm('Permanently delete this user?')) return;
+  try { await api(`/users/${id}`, { method:'DELETE' }); toast('User deleted'); loadUsers(); }
+  catch(e) { toast(e.message, false); }
+}
+
+// ─── PAGINATION ──────────────────────────────────────────
+function renderPagination(prefix, meta, current, onPage) {
+  if (!meta) return;
+  const el = document.getElementById(`${prefix}-pagination`);
+  const total = meta.totalPages || Math.ceil(meta.total / meta.limit) || 1;
+  el.innerHTML = `
+    <button class="page-btn" onclick="(${onPage.toString()})(${current-1})" ${current<=1?'disabled':''}>← Prev</button>
+    <span class="page-info">Page ${current} of ${total} &nbsp;·&nbsp; ${meta.total} records</span>
+    <button class="page-btn" onclick="(${onPage.toString()})(${current+1})" ${current>=total?'disabled':''}>Next →</button>`;
+}
+
+// ─── UTILS ───────────────────────────────────────────────
+function fmt(n) {
+  const num = parseFloat(n) || 0;
+  return new Intl.NumberFormat('en-IN', { style:'currency', currency:'INR', maximumFractionDigits:2 }).format(Math.abs(num));
+}
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '—'; }
+
+// ─── MODAL CLOSE ON OVERLAY ──────────────────────────────
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
+</script>
+</body>
+</html>
